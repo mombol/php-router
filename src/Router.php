@@ -29,7 +29,6 @@ class Router
     {
         $uri = '/' . trim($params[0], '/');
 
-//        $uri = rtrim($uri, '/');
         $callback = $params[1];
 
         array_push(self::$routes, $uri);
@@ -189,14 +188,11 @@ class Router
         if (($query_pos = strpos($uri, '?')) !== false) {
             $uri = substr($uri, 0, $query_pos);
         }
-//        print_r($_SERVER);exit;
-//        echo $uri;exit;
         if (strpos($uri, $_SERVER['SCRIPT_NAME']) === 0) {
             $uri = substr($uri, strlen($_SERVER['SCRIPT_NAME']));
         } elseif (strpos($uri, dirname($_SERVER['SCRIPT_NAME'])) === 0) {
             $uri = substr($uri, strlen(dirname($_SERVER['SCRIPT_NAME'])) - 1);
         }
-//        echo $uri;exit;
         if ($uri == '/' || empty($uri)) {
             return '/';
         }
