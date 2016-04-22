@@ -1,0 +1,20 @@
+{
+    "name": "mombol/router",
+    "description": "a php router base on Macaw",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "mombol",
+            "email": "mombol@163.com"
+        }
+    ],
+    "require": {
+
+    },
+    "autoload": {
+        "psr-4": {
+            "Mombol\\Router\\": "src/"
+        }
+    }
+
+}
