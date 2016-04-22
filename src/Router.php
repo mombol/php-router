@@ -57,6 +57,7 @@ class Router
         $replaces = array_values(static::$patterns);
 
         $found_route = false;
+        $return = null;
 
         self::$routes = str_replace('//', '/', self::$routes);
 
