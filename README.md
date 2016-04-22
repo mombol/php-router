@@ -9,7 +9,7 @@ If you have Composer, just include Router as a project dependency in your `compo
 
 ```
 require: {
-    "mombol/router": "dev-master"
+    "mombol/router": "^1.0"
 }
 ```
 
@@ -25,47 +25,51 @@ Router is not an object, so you can just make direct operations to the class. He
 
 ```PHP
 Router::get('/', function() {
-  echo 'Hello world!';
+  return 'Hello world!';
 });
-
-Router::dispatch();
 ```
 
 Router also supports lambda URIs, such as:
 
 ```PHP
 Router::get('/(:any)', function($slug) {
-  echo 'The slug is: ' . $slug;
+  return 'The slug is: ' . $slug;
 });
-
-Router::dispatch();
 ```
 
 You can also make requests for HTTP methods in Router, so you could also do:
 
 ```PHP
 Router::get('/', function() {
-  echo 'I <3 GET commands!';
+  return 'I <3 GET commands!';
 });
 
 Router::post('/', function() {
-  echo 'I <3 POST commands!';
+  return  'I <3 POST commands!';
 });
-
-Router::dispatch();
 ```
 
 Lastly, if there is no route defined for a certain location, you can make Router run a custom callback, like:
 
 ```PHP
 Router::error(function() {
-  echo '404 :: Not Found';
+  return '404 :: Not Found';
 });
 ```
 
 If you don't specify an error callback, Router will just echo `404`.
 
+After call Router function do this:
+
+```PHP
+Router::dispatch(function($content){
+  if (!empty($content) && is_string($content)) {
+    echo $content;
+  }
+});
+```
+
 <hr>
 
-## Orther
+### Orther
 See https://github.com/noahbuscher/Macaw

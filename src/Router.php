@@ -48,7 +48,7 @@ class Router
     /**
      * Runs the callback for the given request
      */
-    public static function dispatch()
+    public static function dispatch($callback = null)
     {
         $uri = self::detect_uri();
         $method = $_SERVER['REQUEST_METHOD'];
@@ -56,6 +56,7 @@ class Router
         $searches = array_keys(static::$patterns);
         $replaces = array_values(static::$patterns);
 
+        $found_route = false;
 
         self::$routes = str_replace('//', '/', self::$routes);
 
@@ -65,6 +66,8 @@ class Router
             foreach ($route_pos as $route) {
                 // Using an ANY option to match both GET and POST requests
                 if (self::$methods[$route] == $method || self::$methods[$route] == 'ANY') {
+
+                    $found_route = true;
 
                     // If route is not an object
                     if (!is_object(self::$callbacks[$route])) {
@@ -82,10 +85,10 @@ class Router
                         $controller = new $segments[0]();
 
                         // Call method and return
-                        return $controller->{$segments[1]}();
+                        $return = $controller->{$segments[1]}();
                     } else {
                         // Call closure and return
-                        return call_user_func(self::$callbacks[$route]);
+                        $return = call_user_func(self::$callbacks[$route]);
                     }
                 }
             }
@@ -101,6 +104,8 @@ class Router
 
                 if (preg_match('#^' . $route . '$#', $uri, $matched)) {
                     if (self::$methods[$pos] == $method || self::$methods[$pos] == 'ANY') {
+
+                        $found_route = true;
 
                         // Remove $matched[0] as [1] is the first parameter.
                         array_shift($matched);
@@ -123,10 +128,10 @@ class Router
                             if (!method_exists($controller, $segments[1])) {
                                 throw new \InvalidArgumentException('action not found');
                             } else {
-                                return call_user_func_array(array($controller, $segments[1]), $matched);
+                                $return = call_user_func_array(array($controller, $segments[1]), $matched);
                             }
                         } else {
-                            return call_user_func_array(self::$callbacks[$pos], $matched);
+                            $return = call_user_func_array(self::$callbacks[$pos], $matched);
                         }
                     }
                 }
@@ -134,20 +139,31 @@ class Router
             }
         }
 
-        // Run the error callback if the route was not found
-        if (!self::$error_callback) {
-            self::$error_callback = function () {
-                header($_SERVER['SERVER_PROTOCOL'] . " 404 Not Found");
-                return '404';
-            };
-        } else {
-            if (is_string(self::$error_callback)) {
-                self::get($_SERVER['REQUEST_URI'], self::$error_callback);
-                self::$error_callback = null;
-                return self::dispatch();
+        if ($found_route) {
+            if (is_string($callback)) {
+                $callback_segments = explode('@', $callback);
+                $callback_class = $callback_segments[0];
+                $callback_function = $callback_segments[1];
+                $callback_class::$callback_function($return);
+            } else if ($callback instanceof \Closure) {
+                call_user_func($callback, $return);
             }
+        } else {
+            // Run the error callback if the route was not found
+            if (!self::$error_callback) {
+                self::$error_callback = function () {
+                    header($_SERVER['SERVER_PROTOCOL'] . " 404 Not Found");
+                    return '404';
+                };
+            } else {
+                if (is_string(self::$error_callback)) {
+                    self::get($_SERVER['REQUEST_URI'], self::$error_callback);
+                    self::$error_callback = null;
+                    return self::dispatch($callback);
+                }
+            }
+            return call_user_func(self::$error_callback);
         }
-        return call_user_func(self::$error_callback);
     }
 
     /**
